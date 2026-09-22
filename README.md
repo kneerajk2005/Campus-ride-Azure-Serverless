@@ -31,19 +31,26 @@ Project Structure
 
 CampusRide-Azure-Serverless/
 
-├── backend/
-│     function_app.py
-│     host.json
-│     requirements.txt
-│     .funcignore
-│     .gitignore
-│
-├── frontend/
-│    index.html
-|
-├── backend1.yml
-├── frontend1.yml
-└── README.md
+backend/
+     function_app.py,
+     host.json,
+     requirements.txt,
+     .funcignore,
+     .gitignore,
+
+frontend/
+    index.html,
+    student_login.html,
+    ....
+    
+    
+    
+
+backend1.yml
+
+frontend1.yml
+
+README.md
 
 
 System Architecture

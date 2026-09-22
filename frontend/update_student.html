@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Update Student</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: white;
+      opacity: 0;
+      transition: opacity 0.5s ease-in;
+    }
+    body.loaded { opacity: 1; }
+
+    .form-container {
+      background: white;
+      padding: 30px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      border: 1px solid black;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button:hover { background-color: #0056b3; }
+
+    tbody { color: black; }
+
+    .search-container {
+      text-align: right;
+      margin: 20px;
+    }
+
+    #searchInput {
+      width: 300px;
+      padding: 10px 15px;
+      font-size: 16px;
+      border: 2px solid #007bff;
+      border-radius: 6px;
+      outline: none;
+      transition: 0.3s ease-in-out;
+    }
+
+    #searchInput:focus {
+      border-color: #0056b3;
+      box-shadow: 0 0 5px rgba(0, 91, 187, 0.5);
+    }
+
+    .row-status {
+      display:inline-block;
+      margin-left:8px;
+      font-size:13px;
+    }
+    .row-status.success { color: green; }
+    .row-status.error { color: #d33; }
+  </style>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+  <!-- ✅ Navbar -->
+  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/"><img src="logo.png" alt="logo" width="100" height="90"></a>
+      <ul class="nav justify-content-end">
+        <li class="nav-item"><a class="nav-link active" href="ad_dashboard.html">Admin</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Student</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="addstudent.html">Add</a></li>
+            <li><a class="dropdown-item" href="update_student.html">Update</a></li>
+            <li><a class="dropdown-item" href="student_view.html">View</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Bus</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="add_bus.html">Add</a></li>
+            <li><a class="dropdown-item" href="update_bus.html">Update</a></li>
+            <li><a class="dropdown-item" href="busview.html">View</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Notifications</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="admin_notification.html">Notifications</a></li>
+            <li><a class="dropdown-item" href="ad_notification.html">Add Notifications</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a class="nav-link active" href="ad_message.html">Message</a></li>
+        <li class="nav-item"><a class="nav-link active" href="ad_map.html">Location</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" id="logoutBtn">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ✅ Search Bar -->
+  <div class="search-container">
+    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search for student ID...">
+  </div>
+
+  <!-- ✅ Student Update Table -->
+  <div class="container mt-5">
+    <center><h2 class="mb-4">Update Students</h2></center>
+    <div class="table-responsive">
+      <table class="table table-bordered" id="update">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th><th>Name</th><th>Dept</th><th>Year</th>
+            <th>Pickup</th><th>Bus</th><th>Contact</th><th>Email</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="studentTableBody">
+          <!-- Populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ✅ Footer -->
+  <div class="container">
+    <footer class="py-3 my-4">
+      <ul class="nav justify-content-center border-bottom pb-3 mb-3">
+        <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Home</a></li>
+        <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Features</a></li>
+        <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Pricing</a></li>
+        <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">FAQs</a></li>
+        <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">About</a></li>
+      </ul>
+      <p class="text-center text-body-secondary">© 2025 Company, Inc</p>
+    </footer>
+  </div>
+
+  <!-- ✅ Scripts -->
+  <script>
+    const API_URL = "https://neeraj-backend-1-e2febqdsb5fwhvfg.canadacentral-01.azurewebsites.net/api/update_student";
+
+    // Session validation and initial load
+    window.addEventListener('load', () => {
+      document.body.classList.add('loaded');
+      const session = localStorage.getItem("ad_session");
+      if (!session) {
+        alert("Unauthorized! Please login as admin.");
+        window.location.href = "/ad_login.html";
+        return;
+      }
+      loadStudentData();
+    });
+
+    // Logout action
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('ad_session');
+      window.location.href = 'ad_login.html';
+    });
+
+    // Search filter
+    function searchTable() {
+      const input = document.getElementById("searchInput").value.toUpperCase();
+      const rows = document.querySelectorAll("#update tbody tr");
+      rows.forEach(row => {
+        const text = row.innerText.toUpperCase();
+        row.style.display = text.includes(input) ? "" : "none";
+      });
+    }
+
+    // Load students (GET)
+    async function loadStudentData() {
+      try {
+        const session = localStorage.getItem("ad_session");
+        const res = await fetch(API_URL, {
+          method: "GET",
+          headers: { "Content-Type": "application/json", "ad_session": session }
+        });
+        if (!res.ok) throw new Error(`Server ${res.status}`);
+
+        const payload = await res.json();
+        const students = payload.students || payload;
+        const tableBody = document.getElementById("studentTableBody");
+        tableBody.innerHTML = "";
+
+        students.forEach(student => {
+          // escape values when injecting to avoid breaking HTML (basic)
+          const esc = s => (s === null || s === undefined) ? '' : String(s).replace(/"/g, '&quot;');
+          const id = esc(student.student_id);
+          const name = esc(student.name);
+          const dept = esc(student.department);
+          const year = esc(student.year);
+          const pickup = esc(student.pickup_location);
+          const bus = esc(student.bus_number);
+          const contact = esc(student.contact_number || student.contact || '');
+          const email = esc(student.email || '');
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${id}</td>
+            <td><input class="form-control" name="name" value="${name}"></td>
+            <td><input class="form-control" name="department" value="${dept}"></td>
+            <td><input class="form-control" name="year" value="${year}"></td>
+            <td><input class="form-control" name="pickup_location" value="${pickup}"></td>
+            <td><input class="form-control" name="bus_number" value="${bus}"></td>
+            <td><input class="form-control" name="contact_number" value="${contact}"></td>
+            <td><input class="form-control" name="email" value="${email}"></td>
+            <td>
+
+              <button class="btn btn-warning btn-sm">Update</button>
+              <span class="row-status" aria-live="polite"></span>
+            </td>`;
+
+          // attach behavior to the update button
+          const updateBtn = row.querySelector('button');
+          const statusSpan = row.querySelector('.row-status');
+
+          updateBtn.addEventListener('click', () => {
+            // collect values using inputs in this row
+            const rowForm = {
+              student_id: id,
+              name: row.querySelector('input[name="name"]').value.trim(),
+              department: row.querySelector('input[name="department"]').value.trim(),
+              year: row.querySelector('input[name="year"]').value.trim(),
+              pickup_location: row.querySelector('input[name="pickup_location"]').value.trim(),
+              bus_number: row.querySelector('input[name="bus_number"]').value.trim(),
+              contact_number: row.querySelector('input[name="contact_number"]').value.trim(),
+              email: row.querySelector('input[name="email"]').value.trim()
+            };
+            // call update
+            updateStudent(rowForm, statusSpan, updateBtn);
+          });
+
+          tableBody.appendChild(row);
+        });
+      } catch (err) {
+        console.error("Error fetching student data:", err);
+        alert("⚠️ Failed to load data from server. Please check session or server logs.");
+      }
+    }
+
+    // Update student (POST) — receives data object, a status span (to show result), and button to disable while working
+    async function updateStudent(dataObj, statusSpan, btn) {
+      const session = localStorage.getItem("ad_session");
+      if (!session) {
+        alert("Session expired. Please login again.");
+        window.location.href = "/ad_ad_login.html";
+        return;
+      }
+
+      // UI feedback
+      statusSpan.textContent = "Saving...";
+      statusSpan.className = "row-status";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "ad_session": session
+          },
+          body: JSON.stringify(dataObj)
+        });
+
+        const text = await res.text();
+        // try parse JSON if possible
+        let payload;
+        try { payload = JSON.parse(text); } catch { payload = null; }
+
+        if (res.ok) {
+          statusSpan.textContent = "Saved ✓";
+          statusSpan.className = "row-status success";
+        } else {
+          const errMsg = (payload && payload.error) ? payload.error : (text || `HTTP ${res.status}`);
+          statusSpan.textContent = `Error: ${errMsg}`;
+          statusSpan.className = "row-status error";
+          console.error("Update failed:", errMsg);
+        }
+      } catch (err) {
+        console.error("Update exception:", err);
+        statusSpan.textContent = "Network error";
+        statusSpan.className = "row-status error";
+      } finally {
+        btn.disabled = false;
+        // optionally clear status after a delay:
+        setTimeout(() => {
+          // keep success message briefly, clear errors slower
+          if (statusSpan.classList.contains('success')) statusSpan.textContent = "";
+          else if (statusSpan.classList.contains('error')) statusSpan.textContent = "";
+          statusSpan.className = "row-status";
+        }, 3000);
+      }
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

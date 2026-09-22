@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Profile</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: white;
+      opacity: 0;
+      transition: opacity 0.5s ease-in;
+    }
+    body.loaded { opacity: 1; }
+
+    .profile-card {
+      max-width: 600px;
+      margin: 60px auto;
+      padding: 30px;
+      background: white;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+    }
+    .profile-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 25px;
+      text-align: center;
+      color: #007bff;
+    }
+    .profile-item { margin-bottom: 15px; }
+    .label { font-weight: bold; color: #555; }
+    .value { margin-left: 10px; color: #333; }
+  </style>
+</head>
+
+<body>
+<!-- ✅ Check login immediately -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const student = JSON.parse(localStorage.getItem("student_data"));
+
+  if (!student || !student.username1) {
+    alert("⚠️ Please log in first to access this page.");
+    window.location.href = "student_login.html";
+    return;
+  }
+
+  // Continue only if logged in
+  document.body.classList.add("loaded");
+});
+</script>
+
+<!-- ✅ Navbar -->
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="student_profile.html">
+      <img src="logo.png" width="100" height="90" />
+    </a>
+    <ul class="nav justify-content-end">
+      <li class="nav-item"><a class="nav-link active" href="student_profile.html">Profile</a></li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Bus Info</a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="student_bus.html">Bus Details</a></li>
+          <li><a class="dropdown-item" href="update_pickup.html">Update Pickup</a></li>
+        </ul>
+      </li>
+      <li class="nav-item"><a class="nav-link" href="student_notification.html">Notifications</a></li>
+      <li class="nav-item"><a class="nav-link" href="student_map.html">Location</a></li>
+      <li class="nav-item"><a class="nav-link" onclick="logout()">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+
+<br /><br />
+
+<div class="profile-card">
+  <div class="profile-title">Student Profile</div>
+
+  <div class="profile-item"><span class="label">Student ID:</span><span class="value" id="student_id"></span></div>
+  <div class="profile-item"><span class="label">Name:</span><span class="value" id="name"></span></div>
+  <div class="profile-item"><span class="label">Department:</span><span class="value" id="department"></span></div>
+  <div class="profile-item"><span class="label">Year:</span><span class="value" id="year"></span></div>
+  <div class="profile-item"><span class="label">Bus Number:</span><span class="value" id="bus_number"></span></div>
+  <div class="profile-item"><span class="label">Pickup Location:</span><span class="value" id="pickup_location"></span></div>
+  <div class="profile-item"><span class="label">Contact:</span><span class="value" id="contact"></span></div>
+  <div class="profile-item"><span class="label">Email:</span><span class="value" id="email"></span></div>
+</div>
+
+<!-- ✅ JS Logic -->
+<script>
+async function loadStudentProfile() {
+  const student = JSON.parse(localStorage.getItem("student_data"));
+  const username = student.username1;
+
+  try {
+    const res = await fetch(
+      `https://neeraj-backend-1-e2febqdsb5fwhvfg.canadacentral-01.azurewebsites.net/api/student_profile?username1=${username}`,
+      {
+        method: "GET",
+     // ✅ Send cookies for secure validation
+      }
+    );
+
+    // 🔐 Unauthorized or expired session
+    if (res.status === 401 || res.status === 403) {
+      alert("Session expired or unauthorized access. Please log in again.");
+      localStorage.removeItem("student_data");
+      window.location.href = "student_login.html";
+      return;
+    }
+
+    const data = await res.json();
+
+    if (res.ok) {
+      fillUI(data);
+    } else {
+      alert(data.error || "Unable to load student profile.");
+    }
+  } catch (err) {
+    console.error("Error fetching profile:", err);
+    alert("Network error. Please try again later.");
+  }
+}
+
+function fillUI(data) {
+  document.getElementById("student_id").textContent = data.student_id || "-";
+  document.getElementById("name").textContent = data.name || "-";
+  document.getElementById("department").textContent = data.department || "-";
+  document.getElementById("year").textContent = data.year || "-";
+  document.getElementById("bus_number").textContent = data.bus_number || "-";
+  document.getElementById("pickup_location").textContent = data.pickup_location || "-";
+  document.getElementById("contact").textContent = data.contact || "-";
+  document.getElementById("email").textContent = data.email || "-";
+}
+
+function logout() {
+  // Clear both local storage and cookie session
+  localStorage.removeItem("student_data");
+  document.cookie = "st_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  window.location.href = "student_login.html";
+}
+
+// Load profile on page load
+loadStudentProfile();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

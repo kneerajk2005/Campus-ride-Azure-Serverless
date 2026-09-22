@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driver Login</title>
+  <style>
+    body {
+      background-color: #f9fafb;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      width: 350px;
+      margin: 100px auto;
+      padding: 30px;
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      width: 95%;
+      padding: 10px;
+      background: #004cc7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #004cc7;
+    }
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Driver Login</h2>
+    <input type="text" id="username" placeholder="Username" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button id="loginBtn">Sign In</button>
+    <div id="errorMsg" class="error"></div>
+  </div>
+
+  <script>
+    document.getElementById("loginBtn").addEventListener("click", async function (event) {
+      event.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorMsg = document.getElementById("errorMsg");
+
+      if (!username || !password) {
+        errorMsg.textContent = "Please enter both username and password!";
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          "https://neeraj-backend-1-e2febqdsb5fwhvfg.canadacentral-01.azurewebsites.net/api/driver_login", 
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // ✅ Save driver data for next page (dashboard)
+          localStorage.setItem("driver_data", JSON.stringify(data.driver_data));
+
+          alert("Login Successful!");
+          window.location.href = "driver_dashboard.html";  // <-- Create this next
+        } else {
+          errorMsg.textContent = data.error || "Invalid username or password!";
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        errorMsg.textContent = "Server connection error!";
+      }
+    });
+  </script>
+</body>
+</html>

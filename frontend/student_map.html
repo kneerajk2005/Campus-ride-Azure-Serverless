@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Student Bus Location</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: white;
+      opacity: 0;
+      transition: opacity 0.5s ease-in;
+    }
+    body.loaded { opacity: 1; }
+
+    #map {
+      height: 100vh;
+      width: 100%;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+  </style>
+
+  <!-- ✅ Azure Maps SDK (replaces Leaflet) -->
+  <link rel="stylesheet" href="https://atlas.microsoft.com/sdk/javascript/mapcontrol/3/atlas.min.css" />
+  <script src="https://atlas.microsoft.com/sdk/javascript/mapcontrol/3/atlas.min.js"></script>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="student_profile.html">
+      <img src="logo.png" alt="logo" width="100" height="90">
+    </a>
+    <ul class="nav justify-content-end">
+      <li class="nav-item"><a class="nav-link active" href="student_profile.html">Profile</a></li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Bus Info</a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="student_bus.html">Bus Details</a></li>
+          <li><a class="dropdown-item" href="update_pickup.html">Update Pickup</a></li>
+        </ul>
+      </li>
+      <li class="nav-item"><a class="nav-link active" href="student_notification.html">Notifications</a></li>
+      <li class="nav-item"><a class="nav-link active" href="student_map.html">Location</a></li>
+      <li class="nav-item"><a class="nav-link" href="student_login.html" onclick="logout()">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container-fluid p-0">
+  <div id="map"></div>
+</div>
+
+<div id="noLocationAlert" class="alert alert-warning text-center mt-4 d-none">
+  🚫 No active bus location found. Please wait until the driver starts the bus.
+</div>
+
+<script>
+window.addEventListener('load', () => document.body.classList.add('loaded'));
+
+function logout() {
+  localStorage.removeItem("student_data");
+}
+
+const FUNCTION_BASE = "https://neeraj-backend-1-e2febqdsb5fwhvfg.canadacentral-01.azurewebsites.net/api";
+
+let map = null;
+let busMarker = null;
+let mapInitialized = false;
+
+// ✅ Fetch Azure Maps key from your Function
+async function getMapsKey() {
+  const res = await fetch(`${FUNCTION_BASE}/get_maps_config`);
+  const data = await res.json();
+  if (!data.key) throw new Error("Azure Maps key not returned.");
+  return data.key;
+}
+
+// ✅ Load bus location from your existing student_map API
+async function loadBusLocation() {
+  const student = JSON.parse(localStorage.getItem("student_data"));
+  if (!student) {
+    alert("Session expired. Please log in again.");
+    window.location.href = "student_login.html";
+    return;
+  }
+
+  try {
+    const username1 = student.username1;
+    const res = await fetch(`${FUNCTION_BASE}/student_map?username1=${username1}`);
+    const data = await res.json();
+
+    if (!res.ok || !data.latitude || !data.longitude) {
+      document.getElementById("noLocationAlert").classList.remove("d-none");
+      return;
+    }
+
+    document.getElementById("noLocationAlert").classList.add("d-none");
+
+    // ⚠️ Azure Maps uses [longitude, latitude] order
+    const lat = Number(data.latitude);
+    const lng = Number(data.longitude);
+    const position = [lng, lat];
+
+    if (!mapInitialized) {
+      // ── First load: initialize map ──────────
+      const mapsKey = await getMapsKey();
+
+      map = new atlas.Map("map", {
+        center: position,
+        zoom: 15,
+        style: "road",
+        language: "en-US",
+        authOptions: {
+          authType: "subscriptionKey",
+          subscriptionKey: mapsKey,
+        },
+      });
+
+      map.events.add("ready", function () {
+        const popup = new atlas.Popup({
+          content: buildPopupContent(data),
+          pixelOffset: [0, -36],
+          closeButton: false,
+        });
+
+        busMarker = new atlas.HtmlMarker({
+          position: position,
+          color: "#0078d4",
+          popup: popup,
+        });
+
+        map.markers.add(busMarker);
+        busMarker.togglePopup();
+
+        map.events.add("click", busMarker, function () {
+          busMarker.togglePopup();
+        });
+
+        mapInitialized = true;
+      });
+
+    } else {
+      // ── Subsequent updates: move the marker ─
+      busMarker.setOptions({ position: position });
+      busMarker.getOptions().popup.setOptions({
+        content: buildPopupContent(data),
+      });
+      map.setCamera({
+        center: position,
+        type: "ease",
+        duration: 1000,
+      });
+    }
+
+  } catch (err) {
+    console.error("Error fetching bus location:", err);
+    document.getElementById("noLocationAlert").classList.remove("d-none");
+  }
+}
+
+function buildPopupContent(data) {
+  return `
+    <div style="padding:10px 14px;font-family:Arial,sans-serif;font-size:14px;min-width:180px;">
+      <p style="margin:0 0 6px;font-size:15px;font-weight:bold;color:#0078d4;">🚌 ${data.bus_number}</p>
+      <p style="margin:0 0 4px;"><b>Driver:</b> ${data.username || "N/A"}</p>
+      ${data.last_updated
+        ? `<p style="margin:0;color:#666;font-size:12px;">Updated: ${data.last_updated}</p>`
+        : ""}
+    </div>
+  `;
+}
+
+loadBusLocation();
+setInterval(loadBusLocation, 10000);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

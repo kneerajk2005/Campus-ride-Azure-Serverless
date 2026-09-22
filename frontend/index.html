@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Ride</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+  <style>
+
+    /* ===== BASE ===== */
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+      opacity: 0;
+      transition: opacity 0.6s ease-in;
+    }
+    body.loaded { opacity: 1; }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #fff !important;
+      animation: slideDown 0.6s ease forwards;
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-60px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .nav-link-custom {
+      position: relative;
+      color: #0d6efd !important;
+      text-decoration: none;
+      font-weight: 500;
+      padding-bottom: 3px;
+    }
+    .nav-link-custom::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 0; height: 2px;
+      background: #0d6efd;
+      transition: width 0.3s ease;
+    }
+    .nav-link-custom:hover::after { width: 100%; }
+
+    /* ===== HERO COVER ===== */
+    .cover-image {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 50px;
+      object-fit: contain;
+      padding: 20px 20px 0;
+      opacity: 0;
+      transform: scale(1.04);
+      animation: heroIn 1.2s ease forwards 0.3s;
+    }
+    @keyframes heroIn {
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* ===== HERO BADGE ===== */
+    .hero-badge-row {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin: 24px 0 40px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 1s;
+    }
+    .hero-badge {
+      background: #e8f0fe;
+      color: #1a56db;
+      border-radius: 50px;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hero-badge .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #1a56db;
+    }
+
+    /* ===== STATS STRIP ===== */
+    .stats-strip {
+      background: linear-gradient(135deg, #0d6efd 0%, #0a4ccc 100%);
+      border-radius: 20px;
+      padding: 36px 24px;
+      margin: 0 16px 60px;
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 24px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 1.2s;
+    }
+    .stat-item { text-align: center; color: #fff; }
+    .stat-number { font-size: 36px; font-weight: 700; line-height: 1.1; }
+    .stat-label { font-size: 13px; opacity: 0.85; margin-top: 4px; letter-spacing: 0.5px; }
+
+    /* ===== ABOUT SECTION ===== */
+    .about-section {
+      padding: 70px 20px;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .about-section.visible { opacity: 1; transform: translateY(0); }
+    .about-section h2 {
+      font-weight: 700;
+      color: #0d6efd;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 16px;
+    }
+    .about-section p {
+      font-size: 17px;
+      line-height: 1.8;
+      color: #444;
+      max-width: 860px;
+      margin: 0 auto 0;
+    }
+    .about-divider {
+      width: 60px; height: 4px;
+      background: #0d6efd;
+      border-radius: 4px;
+      margin: 0 auto 28px;
+    }
+
+    /* ===== FEATURES SECTION ===== */
+    .features-section {
+      background: #f4f8ff;
+      padding: 70px 20px;
+    }
+    .features-section h2 {
+      font-weight: 700;
+      color: #0d6efd;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .feature-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      height: 100%;
+      box-shadow: 0 4px 20px rgba(13,110,253,0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease, box-shadow 0.3s ease;
+    }
+    .feature-card.visible { opacity: 1; transform: translateY(0); }
+    .feature-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 10px 30px rgba(13,110,253,0.15);
+    }
+    .feature-icon {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: #e8f0fe;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 28px;
+    }
+    .feature-card h5 {
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 10px;
+    }
+    .feature-card p {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    /* ===== HOW IT WORKS ===== */
+    .how-section {
+      padding: 70px 20px;
+      background: #fff;
+    }
+    .how-section h2 {
+      font-weight: 700;
+      color: #0d6efd;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .step-card {
+      text-align: center;
+      padding: 24px 16px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .step-card.visible { opacity: 1; transform: translateY(0); }
+    .step-num {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: #0d6efd;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 14px rgba(13,110,253,0.3);
+    }
+    .step-card h6 { font-weight: 700; color: #1a1a2e; font-size: 15px; }
+    .step-card p  { font-size: 13px; color: #666; line-height: 1.6; }
+
+    /* ===== ROLE CARDS ===== */
+    .roles-section { padding: 70px 20px; background: #f4f8ff; }
+    .roles-section h2 {
+      font-weight: 700;
+      color: #0d6efd;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .role-card {
+      width: 100%;
+      max-width: 260px;
+      margin: auto;
+      border-radius: 18px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.09);
+      height: 170px;
+      position: relative;
+      cursor: pointer;
+      transition: height 0.35s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .role-card:hover {
+      height: 350px;
+      transform: scale(1.04);
+      box-shadow: 0 14px 36px rgba(13,110,253,0.18);
+    }
+    .role-image {
+      width: 100%; height: 170px;
+      object-fit: contain;
+      padding: 20px;
+      transition: transform 0.35s ease;
+    }
+    .role-card:hover .role-image { transform: scale(1.08); }
+    .role-details {
+      opacity: 0;
+      padding: 0 20px 24px;
+      position: absolute;
+      top: 175px; left: 0;
+      width: 100%;
+      text-align: center;
+      transition: opacity 0.3s ease 0.1s;
+    }
+    .role-card:hover .role-details { opacity: 1; }
+    .role-details h4 { font-weight: 700; color: #0d6efd; margin-bottom: 8px; }
+    .role-details p  { font-size: 13px; color: #555; line-height: 1.6; }
+
+    /* ===== TESTIMONIALS ===== */
+    .testimonials-section {
+      background: #fff;
+      padding: 70px 20px;
+    }
+    .testimonials-section h2 {
+      font-weight: 700;
+      color: #0d6efd;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .testimonial-card {
+      background: #f4f8ff;
+      border-left: 4px solid #0d6efd;
+      border-radius: 12px;
+      padding: 28px 24px;
+      opacity: 0;
+      transform: translateX(-20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .testimonial-card.visible { opacity: 1; transform: translateX(0); }
+    .testimonial-card p { font-size: 15px; color: #444; font-style: italic; line-height: 1.7; margin-bottom: 16px; }
+    .testimonial-author { font-weight: 700; color: #0d6efd; font-size: 14px; }
+    .testimonial-role   { font-size: 12px; color: #888; }
+
+    /* ===== FAQ ===== */
+    .faq-section { background: #f4f8ff; padding: 70px 20px; }
+    .faq-section h2 {
+      font-weight: 700;
+      color: #0d6efd;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .faq-item {
+      background: #fff;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .faq-question {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 18px 24px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 15px;
+      color: #1a1a2e;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .faq-question:hover { background: #f0f5ff; }
+    .faq-arrow { font-size: 18px; color: #0d6efd; transition: transform 0.3s; }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.3s;
+      font-size: 14px;
+      color: #555;
+      line-height: 1.7;
+      padding: 0 24px;
+    }
+    .faq-item.open .faq-answer { max-height: 200px; padding: 0 24px 18px; }
+    .faq-item.open .faq-arrow   { transform: rotate(180deg); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: #1a1a2e;
+      color: #ccc;
+      padding: 48px 24px 24px;
+    }
+    footer .footer-brand {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    footer .footer-tagline { font-size: 13px; color: #aaa; margin-bottom: 24px; }
+    footer .footer-link {
+      color: #aaa;
+      text-decoration: none;
+      font-size: 14px;
+      display: block;
+      margin-bottom: 8px;
+      transition: color 0.2s;
+    }
+    footer .footer-link:hover { color: #5b9dff; }
+    footer .footer-heading { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 14px; letter-spacing: 1px; text-transform: uppercase; }
+    footer .footer-bottom { border-top: 1px solid #2a2a40; padding-top: 20px; margin-top: 32px; font-size: 12px; color: #666; }
+
+    /* ===== SCROLL ANIMATIONS ===== */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 576px) {
+      .cover-image  { border-radius: 20px; }
+      .stats-strip  { border-radius: 12px; margin: 0 8px 40px; }
+      .stat-number  { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">
+      <img src="logo.png" alt="Campus Ride Logo" width="100" height="90">
+    </a>
+    <ul class="nav justify-content-end align-items-center">
+      <li class="nav-item"><a class="nav-link nav-link-custom" href="/">HOME</a></li>
+      <li class="nav-item"><a class="nav-link nav-link-custom" href="#about">ABOUT</a></li>
+      <li class="nav-item"><a class="nav-link nav-link-custom" href="#features">FEATURES</a></li>
+      <li class="nav-item"><a class="nav-link nav-link-custom" href="#LOGIN">LOGIN</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<div class="container-fluid p-0">
+  <img src="campus_ride.png" alt="Campus Ride" class="cover-image">
+</div>
+
+<div class="hero-badge-row">
+  <div class="hero-badge"><span class="dot"></span> Real-Time Tracking</div>
+  <div class="hero-badge"><span class="dot"></span> Notifications</div>
+  <div class="hero-badge"><span class="dot"></span> Secure & Reliable</div>
+</div>
+
+<!-- ===== STATS STRIP ===== -->
+
+<!-- ===== ABOUT ===== -->
+<div class="about-section" id="about">
+  <h2 class="text-center">About Campus Ride</h2>
+  <div class="about-divider"></div>
+  <p class="text-center">
+    Campus Ride is a smart campus transportation management system built to make daily travel easier, 
+    safer, and more transparent for students, drivers, and administrators. The platform delivers 
+    real-time bus tracking, organized route schedules, and role-specific dashboards — so everyone 
+    has the right information at the right time. Administrators efficiently manage buses and student 
+    allocations; drivers update live location details; students instantly check their assigned bus 
+    route and pickup timing. Campus Ride reduces waiting time and brings clarity to campus commuting.
+  </p>
+</div>
+
+<!-- ===== FEATURES ===== -->
+<div class="features-section" id="features">
+  <div class="container">
+    <h2 class="text-center mb-2">Key Features</h2>
+    <div class="about-divider mb-5"></div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon">📍</div>
+          <h5>Live Bus Tracking</h5>
+          <p>Drivers update real-time location data, allowing students and admins to see exactly where each bus is at any moment.</p>
+        </div>
+      </div>
+
+      
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h5>Admin Dashboard</h5>
+          <p>Admins get a powerful control panel to manage bus allocations, student records, and driver assignments.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon">🔔</div>
+          <h5>Pickup Notifications</h5>
+          <p>Students receive timely alerts about their bus arrival status, eliminating unnecessary waiting at stops.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HOW IT WORKS ===== -->
+<div class="how-section">
+  <div class="container">
+    <h2 class="text-center mb-2">How It Works</h2>
+    <div class="about-divider mb-5"></div>
+    <div class="row g-3">
+      <div class="col-md-3 step-card">
+        <div class="step-num">1</div>
+        <h6>Register</h6>
+        <p>Students and drivers are registered by the admin. Each user receives role-specific credentials.</p>
+      </div>
+      <div class="col-md-3 step-card">
+        <div class="step-num">2</div>
+        <h6>Login</h6>
+        <p>Users log in through their respective portals — Admin, Student, or Driver.</p>
+      </div>
+      <div class="col-md-3 step-card">
+        <div class="step-num">3</div>
+        <h6>Track</h6>
+        <p>Drivers update their location live. Students see their bus in real time on the dashboard.</p>
+      </div>
+      <div class="col-md-3 step-card">
+        <div class="step-num">4</div>
+        <h6>Commute</h6>
+        <p>Students board on time, drivers complete routes, and admins monitor the entire process.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LOGIN ROLES ===== -->
+<div class="roles-section" id="LOGIN">
+  <div class="container">
+    <h2 class="text-center mb-2">Login As</h2>
+    <div class="about-divider mb-5"></div>
+    <div class="row justify-content-center g-4">
+      <div class="col-md-4 d-flex justify-content-center">
+        <div class="role-card">
+          <img src="admin.png" class="role-image" alt="Admin">
+          <div class="role-details">
+            <h4>Admin</h4>
+            <p>Manage users, buses, and routes through a powerful dashboard.</p>
+            <a class="btn btn-primary btn-sm px-4" href="ad_login.html" target="_blank">Login &raquo;</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 d-flex justify-content-center">
+        <div class="role-card">
+          <img src="student.png" class="role-image" alt="Student">
+          <div class="role-details">
+            <h4>Student</h4>
+            <p>Track your assigned bus and access transport details and pickup times.</p>
+            <a class="btn btn-primary btn-sm px-4" href="student_login.html" target="_blank">Login &raquo;</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 d-flex justify-content-center">
+        <div class="role-card">
+          <img src="driver.png" class="role-image" alt="Driver">
+          <div class="role-details">
+            <h4>Driver</h4>
+            <p>Update real-time bus location and manage student pickups efficiently.</p>
+            <a class="btn btn-primary btn-sm px-4" href="driver_login.html" target="_blank">Login &raquo;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TESTIMONIALS ===== -->
+<div class="testimonials-section">
+  <div class="container">
+    <h2 class="text-center mb-2">What Users Say</h2>
+    <div class="about-divider mb-5"></div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="testimonial-card">
+          <p>"Campus Ride has completely eliminated the confusion around bus timings. I always know exactly when my bus arrives."</p>
+          <div class="testimonial-author">Priya Sharma</div>
+          <div class="testimonial-role">3rd Year Student, CSE</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="testimonial-card">
+          <p>"As a driver, the live location update feature makes my job much easier and I can stay on schedule effortlessly."</p>
+          <div class="testimonial-author">Ravi Kumar</div>
+          <div class="testimonial-role">Bus Driver, Route 7</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="testimonial-card">
+          <p>"Managing 30 buses and 500 students was overwhelming before. Campus Ride turned it into a smooth operation."</p>
+          <div class="testimonial-author">Dr. Anand Rao</div>
+          <div class="testimonial-role">Transport Administrator</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FAQ ===== -->
+<div class="faq-section">
+  <div class="container" style="max-width: 760px;">
+    <h2 class="text-center mb-2">Frequently Asked Questions</h2>
+    <div class="about-divider mb-5"></div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        How do I find my assigned bus route?
+        <span class="faq-arrow">&#8964;</span>
+      </button>
+      <div class="faq-answer">Log in as a Student and navigate to your dashboard. Your assigned bus number, route details, and pickup time will be displayed on the home screen.</div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        Can I track the bus in real time?
+        <span class="faq-arrow">&#8964;</span>
+      </button>
+      <div class="faq-answer">Yes! Drivers continuously update their location through the Driver portal. Students can view the live position of their assigned bus from the Student dashboard.</div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        Who manages the bus and student records?
+        <span class="faq-arrow">&#8964;</span>
+      </button>
+      <div class="faq-answer">The Admin manages all records including buses, routes, student allocations, and driver details through a dedicated admin dashboard.</div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        Is Campus Ride accessible on mobile devices?
+        <span class="faq-arrow">&#8964;</span>
+      </button>
+      <div class="faq-answer">Absolutely. Campus Ride is fully responsive and works seamlessly on smartphones, tablets, and desktop browsers.</div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        What should I do if my bus details are incorrect?
+        <span class="faq-arrow">&#8964;</span>
+      </button>
+      <div class="faq-answer">Contact your campus transport administrator. Admins have full control to update or correct bus and student allocation details from the admin panel.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-5">
+        <div class="footer-brand">🚌 Campus Ride</div>
+        <div class="footer-tagline">Smart campus transportation, simplified.</div>
+        <p style="font-size: 13px; color: #888; line-height: 1.7;">Connecting students, drivers, and administrators through a transparent and efficient transport management platform.</p>
+      </div>
+      <div class="col-md-3 offset-md-1">
+        <div class="footer-heading">Navigation</div>
+        <a href="/"         class="footer-link">Home</a>
+        <a href="#about"    class="footer-link">About</a>
+        <a href="#features" class="footer-link">Features</a>
+        <a href="#LOGIN"    class="footer-link">Login</a>
+      </div>
+      <div class="col-md-3">
+        <div class="footer-heading">Portals</div>
+        <a href="ad_login.html"      class="footer-link">Admin Login</a>
+        <a href="student_login.html" class="footer-link">Student Login</a>
+        <a href="driver_login.html"  class="footer-link">Driver Login</a>
+      </div>
+    </div>
+    <div class="footer-bottom text-center">
+      &copy; 2025 Campus Ride. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+  /* Page load fade-in */
+  window.addEventListener('load', () => {
+    document.body.classList.add('loaded');
+  });
+
+  /* Intersection Observer for scroll animations */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('visible');
+        }, entry.target.dataset.delay || 0);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll(
+    '.about-section, .feature-card, .step-card, .testimonial-card'
+  ).forEach((el, i) => {
+    el.dataset.delay = (i % 3) * 120;
+    observer.observe(el);
+  });
+
+  /* Animated counter for stats */
+  function animateCounter(el, target, suffix = '') {
+    let start = 0;
+    const duration = 1800;
+    const step = Math.ceil(target / (duration / 16));
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= target) { start = target; clearInterval(timer); }
+      el.textContent = start + suffix;
+    }, 16);
+  }
+
+  const statsObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      document.querySelectorAll('.stat-number').forEach(el => {
+        const text = el.textContent.trim();
+        const suffix = text.replace(/[0-9]/g, '');
+        const num = parseInt(text);
+        el.textContent = '0' + suffix;
+        animateCounter(el, num, suffix);
+      });
+      statsObserver.disconnect();
+    }
+  }, { threshold: 0.4 });
+  statsObserver.observe(document.querySelector('.stats-strip'));
+
+  /* FAQ toggle */
+  function toggleFAQ(btn) {
+    const item = btn.parentElement;
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  /* Smooth scroll for anchor links */
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+</body>
+</html>`

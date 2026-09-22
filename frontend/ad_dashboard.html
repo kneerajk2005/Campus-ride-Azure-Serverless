@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+     <style>
+body {
+  font-family: 'Poppins', sans-serif;
+  padding: 40px;
+  background: #f8f9fa;
+  opacity: 0;
+  transition: opacity 0.6s ease-in;
+}
+
+body.loaded {
+  opacity: 1;
+}
+
+/* Navbar */
+.navbar {
+  background-color: #ffffff !important;
+  
+}
+.navbar-brand img {
+  transition: transform 0.3s ease;
+}
+.navbar-brand img:hover {
+  transform: scale(1.05);
+}
+.nav-link {
+  color: #004e92 !important;
+  font-weight: 500;
+  transition: 0.3s;
+}
+.nav-link:hover {
+  color: #007bff !important;
+}
+
+/* Dashboard Title */
+h2 {
+  margin-bottom: 40px;
+  font-weight: 700;
+  color: #222;
+  letter-spacing: 0.5px;
+}
+
+/* Stat Cards Styling */
+.stat-card {
+  border-radius: 20px;
+  padding: 25px 15px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 14px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* Color Themes */
+.blue {
+  background: linear-gradient(135deg, #007bff, #00b4ff);
+}
+.yellow {
+  background: linear-gradient(135deg, #f6d365, #fda085);
+}
+.green {
+  background: linear-gradient(135deg, #00b09b, #96c93d);
+}
+.cyan {
+  background: linear-gradient(135deg, #17a2b8, #4dd0e1);
+}
+
+/* Icon */
+.stat-card .icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  animation: float 2s ease-in-out infinite;
+}
+
+/* Card Title & Numbers */
+.stat-card h5 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  letter-spacing: 0.3px;
+}
+
+.stat-card h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Hover Light Effect */
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.stat-card:hover::before {
+  opacity: 1;
+  animation: shine 1s linear;
+}
+
+/* Animations */
+@keyframes shine {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Footer */
+footer {
+  background: #ffffff;
+  color: #666;
+  padding: 20px 0;
+  text-align: center;
+  border-top: 1px solid #ddd;
+}
+footer .nav-link {
+  color: #777 !important;
+}
+footer .nav-link:hover {
+  color: #000 !important;
+}
+
+
+
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+  </head>
+
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">
+     <img src="logo.png" alt="logo"   width="100"  height="90">    </a>
+    <ul class="nav  justify-content-end">
+     <li class="nav-item">
+        <a class="nav-link active" aria-current="page" href="ad_dashboard.html" >Admin</a>
+     </li>
+     <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button"
+           data-bs-toggle="dropdown" aria-expanded="false" id="hover">
+            Student
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="addstudent.html" >Add</a></li>
+            <li><a class="dropdown-item" href="update_student.html">Update</a></li>
+            <li><a class="dropdown-item" href="student_view.html">View</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button"
+           data-bs-toggle="dropdown" aria-expanded="false">
+            Bus
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="add_bus.html">Add</a></li>
+            <li><a class="dropdown-item" href="update_bus.html">Update</a></li>
+            <li><a class="dropdown-item" href="busview.html">View</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button"
+           data-bs-toggle="dropdown" aria-expanded="false">
+            Notifications
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="admin_notification.html">Notifications</a></li>
+            <li><a class="dropdown-item" href="ad_notification.html">Add Notifications</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+        <a class="nav-link active" aria-current="page" href="ad_message.html">Message</a>
+     </li>
+      <li class="nav-item">
+        <a class="nav-link active" aria-current="page" href="ad_map.html">Location</a>
+     </li>
+     <li class="nav-item">
+        <a class="nav-link" onclick="logout()">Logout</a>
+     </li>
+    </ul>
+    </div>
+    </div>
+</nav>
+<br><br>
+  <div class="container">
+    <h2 class="text-center">Admin Dashboard – Quick Stats</h2>
+<br>
+    <div class="row g-4">
+
+      <div class="row g-4 justify-content-center">
+      <div class="col-md-3 col-sm-6">
+        <div class="stat-card blue">
+          <div class="icon">🎓</div>
+          <h5>Total Students</h5>
+          <h3 id="students-count">0</h3>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="stat-card yellow">
+          <div class="icon">🚌</div>
+          <h5>Total Buses</h5>
+          <h3 id="buses-count">0</h3>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="stat-card green">
+          <div class="icon">👨‍✈️</div>
+          <h5>Total Drivers</h5>
+          <h3 id="drivers-count">0</h3>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="stat-card cyan">
+          <div class="icon">📍</div>
+          <h5>Buses on Route</h5>
+          <h3 id="onroute-count">0</h3>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+
+
+<br><br><br>
+<!--Footer-->
+<div class="container">
+     <footer class="py-3 my-4">
+         <ul class="nav justify-content-center border-bottom pb-3 mb-3">
+             <li class="nav-item">
+                <a href="#" class="nav-link px-2 text-body-secondary">Home</a></li>
+                <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Features</a></li>
+                <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Pricing</a></li>
+                <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">FAQs</a></li> 
+                <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">About</a></li> 
+         </ul>
+          <p class="text-center text-body-secondary">© 2025 Company, Inc</p>
+             </footer>
+ </div>
+ <script>
+    window.addEventListener('load', () => {
+      document.body.classList.add('loaded');
+      loadDashboardData();
+    });
+
+    async function loadDashboardData() {
+      const session = localStorage.getItem("ad_session");
+      if (!session) {
+        alert("Session expired. Please login again.");
+        window.location.href = "ad_login.html";
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          "https://neeraj-backend-1-e2febqdsb5fwhvfg.canadacentral-01.azurewebsites.net/api/ad_dashboard",
+          { method: "GET", headers: { "ad_session": session } }
+        );
+
+        if (!response.ok) {
+          alert("Unauthorized or session expired.");
+          window.location.href = "ad_login.html";
+          return;
+        }
+
+        const data = await response.json();
+        document.getElementById("students-count").textContent = data.total_students;
+        document.getElementById("buses-count").textContent = data.total_buses;
+        document.getElementById("drivers-count").textContent = data.total_drivers;
+        document.getElementById("onroute-count").textContent = data.buses_on_route;
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Server connection error!");
+      }
+    }
+  </script>
+  <script>
+  function logout() {
+    // Remove session token
+    localStorage.removeItem("ad_session");
+
+    // Redirect to login page
+    window.location.href = "ad_login.html";
+  }
+</script>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,57 @@
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - frontend/*
+
+variables:
+  azureSubscription: 'Azure subscription 1'
+  webAppName: 'webapp-neeraj1'
+  environmentName: 'webapp-neeraj1'
+  rootFolder: '$(System.DefaultWorkingDirectory)/frontend'
+
+pool:
+  name: 'pool1'   # 👈 Your Windows agent pool
+stages:
+- stage: Build
+  displayName: Build stage
+  variables:
+    phpVersion: '8.4'
+  jobs:
+  - job: BuildJob
+    steps:
+    - script: php -version
+      workingDirectory: $(rootFolder)
+      displayName: 'Check PHP version'
+    - task: ArchiveFiles@2
+      displayName: 'Archive frontend files'
+      inputs:
+        rootFolderOrFile: '$(rootFolder)'
+        includeRootFolder: false
+        archiveType: zip
+        archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+        replaceExistingArchive: true
+    - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      displayName: 'Upload package'
+      artifact: drop
+      
+- stage: Deploy
+  displayName: 'Deploy Web App'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: DeploymentJob
+    environment: $(environmentName)
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            displayName: 'Deploy Azure Web App : webapp-neeraj1'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              appName: $(webAppName)
+              appType: webAppLinux   # ✅ Keep this if your App Service is Linux
+              package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip

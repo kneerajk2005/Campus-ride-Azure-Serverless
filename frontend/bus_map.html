@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Bus Location</title>
+
+    <style>
+      body {
+          font-family: Arial, sans-serif;
+          padding: 40px;
+          background: white;
+          opacity: 0;
+          transition: opacity 0.5s ease-in;
+      }
+      body.loaded { opacity: 1; }
+
+      #map {
+          height: 100vh;
+          width: 100%;
+      }
+
+      .floating-btn {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          z-index: 999;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+      }
+
+      .floating-btn button {
+          background-color: #007bff;
+          color: white;
+          border: none;
+          padding: 12px 18px;
+          font-size: 16px;
+          border-radius: 10px;
+          cursor: pointer;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      }
+
+      .floating-btn button:hover {
+          background-color: #0056b3;
+      }
+    </style>
+
+    <!-- ✅ Azure Maps SDK (replaces Leaflet) -->
+    <link rel="stylesheet" href="https://atlas.microsoft.com/sdk/javascript/mapcontrol/3/atlas.min.css" />
+    <script src="https://atlas.microsoft.com/sdk/javascript/mapcontrol/3/atlas.min.js"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand">
+      <img src="logo.png" width="100" height="90">
+    </a>
+    <ul class="nav justify-content-end">
+      <li class="nav-item"><a class="nav-link" href="driver_dashboard.html">Profile</a></li>
+      <li class="nav-item"><a class="nav-link" href="driver_route.html">Route Info</a></li>
+      <li class="nav-item"><a class="nav-link" href="student_list.html">Student List</a></li>
+      <li class="nav-item"><a class="nav-link" href="driver_notifications.html">Notifications</a></li>
+      <li class="nav-item"><a class="nav-link" href="bus_map.html">Location</a></li>
+      <li class="nav-item"><a class="nav-link" href="contact_driver.html">Contact</a></li>
+      <li class="nav-item"><a class="nav-link" onclick="logout()">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div id="map"></div>
+
+<div class="floating-btn">
+    <button onclick="startBus()">▶️ Start Bus</button>
+    <button onclick="stopBus()">⏹️ Stop Bus</button>
+</div>
+
+<script>
+const FUNCTION_BASE = "https://neeraj-backend-1-e2febqdsb5fwhvfg.canadacentral-01.azurewebsites.net/api";
+
+let map = null;
+let busMarker = null;
+let mapInitialized = false;
+let intervalId = null;
+
+// ✅ Fetch Azure Maps key from your Function
+async function getMapsKey() {
+    const res = await fetch(`${FUNCTION_BASE}/get_maps_config`);
+    const data = await res.json();
+    if (!data.key) throw new Error("Azure Maps key not returned.");
+    return data.key;
+}
+
+// ✅ Initialize the map once on first location fix
+async function initMap(lat, lng) {
+    const mapsKey = await getMapsKey();
+
+    // ⚠️ Azure Maps uses [longitude, latitude] order
+    map = new atlas.Map("map", {
+        center: [lng, lat],
+        zoom: 15,
+        style: "road",
+        language: "en-US",
+        authOptions: {
+            authType: "subscriptionKey",
+            subscriptionKey: mapsKey,
+        },
+    });
+
+    map.events.add("ready", function () {
+        busMarker = new atlas.HtmlMarker({
+            position: [lng, lat],
+            color: "#007bff",
+            popup: new atlas.Popup({
+                content: '<div style="padding:8px;font-family:Arial;font-size:14px;">📍 Your Bus Location</div>',
+                pixelOffset: [0, -36],
+                closeButton: false,
+            }),
+        });
+
+        map.markers.add(busMarker);
+        busMarker.togglePopup();
+
+        mapInitialized = true;
+    });
+}
+
+// ✅ Update marker and camera position
+function updateMap(lat, lng) {
+    if (!mapInitialized) return;
+
+    // ⚠️ [longitude, latitude] order for Azure Maps
+    busMarker.setOptions({ position: [lng, lat] });
+    map.setCamera({
+        center: [lng, lat],
+        zoom: 15,
+        type: "ease",
+        duration: 1000,
+    });
+}
+
+// ✅ Get GPS location → update map → send to backend
+function sendLocation() {
+    const driver = JSON.parse(localStorage.getItem("driver_data"));
+    if (!driver) return;
+
+    navigator.geolocation.getCurrentPosition(async position => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        if (!mapInitialized) {
+            // First time: initialize map then update
+            await initMap(lat, lng);
+        } else {
+            updateMap(lat, lng);
+        }
+
+        // POST location to your existing backend (no changes needed)
+        await fetch(`${FUNCTION_BASE}/update_location`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username: driver.username,
+                latitude: lat,
+                longitude: lng,
+            }),
+        });
+    });
+}
+
+async function startBus() {
+    const driver = JSON.parse(localStorage.getItem("driver_data"));
+
+    if (!driver) {
+        alert("Please login first");
+        return;
+    }
+
+    if (intervalId) {
+        alert("Bus already started!");
+        return;
+    }
+
+    // 🔥 CALL API
+    await fetch(`${FUNCTION_BASE}/start_bus`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ username: driver.username })
+    });
+
+    sendLocation();
+    intervalId = setInterval(sendLocation, 10000);
+
+    alert("Bus started!");
+}
+
+async function stopBus() {
+    const driver = JSON.parse(localStorage.getItem("driver_data"));
+
+    if (!intervalId) {
+        alert("Bus already stopped!");
+        return;
+    }
+
+    // 🔥 CALL API
+    await fetch(`${FUNCTION_BASE}/stop_bus`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ username: driver.username })
+    });
+
+    clearInterval(intervalId);
+    intervalId = null;
+
+    alert("Bus stopped!");
+}
+
+function logout() {
+    localStorage.removeItem("driver_data");
+    window.location.href = "driver_login.html";
+}
+
+window.addEventListener('load', () => document.body.classList.add('loaded'));
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

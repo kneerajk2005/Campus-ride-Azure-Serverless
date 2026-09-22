@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Student Login</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: Arial, sans-serif;
+      opacity: 0;
+      transition: opacity 0.5s ease-in;
+    }
+    body.loaded {
+      opacity: 1;
+    }
+    .login-container {
+      max-width: 400px;
+      margin: 80px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .login-container h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="login-container">
+  <h2>Student Login</h2>
+  <div id="errorMsg" class="text-danger mb-3"></div>
+
+  <form id="loginForm">
+    <div class="mb-3">
+      <label class="form-label">Username</label>
+      <input type="text" class="form-control" id="username" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Password</label>
+      <input type="password" class="form-control" id="password" required>
+    </div>
+
+    <button id="loginBtn" class="btn btn-primary w-100">Sign In</button>
+  </form>
+</div>
+
+<script>
+window.addEventListener('load', () => document.body.classList.add('loaded'));
+
+document.getElementById("loginForm").addEventListener("submit", async function (event) {
+  event.preventDefault();
+
+  const username1 = document.getElementById("username").value.trim();
+  const password1 = document.getElementById("password").value.trim();
+  const errorMsg = document.getElementById("errorMsg");
+
+  // 🔍 Input validation
+  if (!username1 || !password1) {
+    errorMsg.textContent = "Please enter both username and password!";
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "https://neeraj-backend-1-e2febqdsb5fwhvfg.canadacentral-01.azurewebsites.net/api/student_login",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username1, password1 }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // ✅ Store student data locally for next pages
+      localStorage.setItem("student_data", JSON.stringify(data.student_data));
+
+      // ✅ Store session_id (for extra safety)
+      if (data.session_id) {
+        localStorage.setItem("st_session", data.session_id);
+      }
+
+      alert("✅ Login successful!");
+      window.location.href = "student_profile.html"; // redirect
+    } else {
+      errorMsg.textContent = data.error || "Invalid username or password!";
+    }
+  } catch (err) {
+    console.error("Error:", err);
+    errorMsg.textContent = "Server connection error!";
+  }
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

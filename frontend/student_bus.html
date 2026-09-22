@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 40px;
+        background: white;
+        transition: smooth;
+        opacity: 0;
+        transition: opacity 0.5s ease-in;
+      }
+      body.loaded { opacity: 1; }
+      h2{
+        text-align: center;
+        color: #007bff;
+      }
+      .card { 
+        max-width: 600px; 
+        margin: 60px auto; 
+        padding: 30px; 
+        box-shadow: 0 0 10px #ccc; 
+        border-radius: 10px; 
+      }
+      .label { font-weight: bold; }
+      .value { margin-left: 10px; }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="logo.png" alt="logo" width="100" height="90">
+      </a>
+      <ul class="nav justify-content-end">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="student_profile.html">Profile</a>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            Bus Info
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="student_bus.html">Bus Details</a></li>
+            <li><a class="dropdown-item" href="update_pickup.html">Update Pickup</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="student_notification.html">Notifications</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="student_map.html">Location</a>
+        </li>
+
+        
+        <li class="nav-item">
+          <a class="nav-link" href="/logout" id="logoutLink">Logout</a>
+        </li>
+      </ul>
+    </div>
+    </div>
+  </nav>
+
+  <br><br>
+  <h2 style="color: #007bff;">Assigned Bus Details</h2>
+
+  <div class="card">
+    <p><span class="label">Bus Number:</span> <span class="value" id="bus_no"></span></p>
+    <p><span class="label">Route:</span> <span class="value" id="route"></span></p>
+    <p><span class="label">Driver:</span> <span class="value" id="name"></span></p>
+    <p><span class="label">Contact:</span> <span class="value" id="contact"></span></p>
+    <p><span class="label">Max Seating:</span> <span class="value" id="maximum_seating"></span></p>
+  </div>
+
+  <br><br><br>
+  <!--Footer-->
+  <div class="container">
+    <footer class="py-3 my-4">
+      <ul class="nav justify-content-center border-bottom pb-3 mb-3">
+        <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Home</a></li>
+        <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Features</a></li>
+        <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Pricing</a></li>
+        <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">FAQs</a></li> 
+        <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">About</a></li> 
+      </ul>
+      <p class="text-center text-body-secondary">© 2025 Company, Inc</p>
+    </footer>
+  </div>
+
+  <script>
+    // keep your fade-in
+    window.addEventListener('load', () => {
+      document.body.classList.add('loaded');
+    });
+
+    // (optional) if you want to clear local data on logout in addition to server route
+    const logout = document.getElementById('logoutLink');
+    if (logout) {
+      logout.addEventListener('click', () => {
+        try { localStorage.removeItem('student_data'); } catch(e) {}
+      });
+    }
+
+    // load bus details from Azure Function using your Cosmos field names
+    (async function loadBusDetails() {
+      const student = JSON.parse(localStorage.getItem('student_data') || 'null');
+      if (!student || !student.username1) {
+        // page keeps your style & links; just show friendly alert
+        alert('Please login first.');
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          'https://neeraj-backend-1-e2febqdsb5fwhvfg.canadacentral-01.azurewebsites.net/api/student_busdetails',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username1: student.username1 }) // matches your DB schema
+          }
+        );
+
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.error || 'Unable to load bus details');
+          return;
+        }
+
+        const bus = data.bus_details || {};
+        // populate exact placeholders replacing previous Jinja tags
+        document.getElementById('bus_no').textContent = bus.bus_no ?? '';
+        document.getElementById('route').textContent = bus.route ?? '';
+        document.getElementById('name').textContent = bus.name ?? '';
+        document.getElementById('contact').textContent = bus.contact ?? '';
+        document.getElementById('maximum_seating').textContent = bus.maximum_seating ?? '';
+      } catch (err) {
+        console.error(err);
+        alert('Server connection error.');
+      }
+    })();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+</body>
+</html>

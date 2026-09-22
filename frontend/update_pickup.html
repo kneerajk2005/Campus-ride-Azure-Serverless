@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+     <style>
+      body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: white;
+      transition: smooth;
+      opacity: 0;
+      transition: opacity 0.5s ease-in;
+     }
+      body.loaded {
+        opacity: 1;
+      }
+     h2{
+        text-align: center;
+     }
+     .card { 
+        max-width: 600px; 
+        margin: 60px auto; 
+        padding: 30px; 
+        box-shadow: 0 0 10px #ccc; 
+        border-radius: 10px; 
+     }
+     .label { font-weight: bold; }
+     .value { margin-left: 10px; }
+    </style>
+
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="student_profile.html">
+          <img src="logo.png" alt="logo" width="100" height="90">
+        </a>
+        <ul class="nav justify-content-end">
+          <li class="nav-item"><a class="nav-link active" href="student_profile.html">Profile</a></li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button"
+             data-bs-toggle="dropdown" aria-expanded="false">
+              Bus Info
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="student_bus.html">Bus Details</a></li>
+              <li><a class="dropdown-item" href="update_pickup.html">Update Pickup</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item"><a class="nav-link active" href="student_notification.html">Notifications</a></li>
+          <li class="nav-item"><a class="nav-link active" href="student_map.html">Location</a></li>
+          <li class="nav-item"><a class="nav-link" href="student_login.html" onclick="logout()">Logout</a></li>
+        </ul>
+      </div>
+    </nav>
+
+<br><br>
+<center>
+<div class="d-flex justify-content-center mt-5">
+  <form id="pickupForm" style="width: 350px;">
+    <h4 class="text-center mb-4">Update Pickup Location</h4>
+
+    <div class="mb-3">
+      <label for="pickup_location" class="form-label">New Pickup Location</label>
+      <input type="text" class="form-control" id="pickup_location" required>
+    </div>
+
+    <div class="d-grid">
+      <button id="updateBtn" class="btn btn-primary">Update</button>
+    </div>
+  </form>
+</div>
+</center>
+
+<br><br><br>
+
+<div class="container">
+     <footer class="py-3 my-4">
+         <ul class="nav justify-content-center border-bottom pb-3 mb-3">
+             <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Home</a></li>
+             <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Features</a></li>
+             <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Pricing</a></li>
+             <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">FAQs</a></li> 
+             <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">About</a></li> 
+         </ul>
+          <p class="text-center text-body-secondary">© 2025 Company, Inc</p>
+     </footer>
+</div>
+
+<script>
+window.addEventListener('load', () => {
+  document.body.classList.add('loaded');
+});
+
+function logout() {
+  localStorage.removeItem("student_data");
+}
+document.getElementById("pickupForm").addEventListener("submit", async function(event) {
+  event.preventDefault();
+
+  const student = JSON.parse(localStorage.getItem("student_data"));
+
+  if (!student) {
+    alert("Session expired. Please log in again.");
+    window.location.href = "student_login.html";
+    return;
+  }
+
+  const username1 = student.username1;
+  const new_pickup = document.getElementById("pickup_location").value.trim();
+
+  if (!new_pickup) {
+    alert("Please enter a pickup location!");
+    return;
+  }
+
+  // ✅ Add this line here
+  console.log("Sending to backend:", { username1, pickup_location: new_pickup });
+
+  try {
+    const response = await fetch("https://neeraj-backend-1-e2febqdsb5fwhvfg.canadacentral-01.azurewebsites.net/api/update_pickup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username1, pickup_location: new_pickup })
+    });
+
+    const data = await response.json();
+    console.log("Response from backend:", data);
+
+    if (response.ok) {
+      alert(data.message || "Pickup location updated successfully!");
+    } else {
+      alert(data.error || "Failed to update pickup location.");
+    }
+
+  } catch (error) {
+    alert("Network or server error occurred.");
+    console.error(error);
+  }
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

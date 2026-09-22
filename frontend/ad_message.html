@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Messages</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: white;
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+        }
+        body.loaded { opacity: 1; }
+        tbody { color: black; }
+    </style>
+</head>
+
+<body>
+
+<!-- ✅ PAGE ACCESS PROTECTION -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const session = localStorage.getItem("ad_session");
+    if (!session || session.trim() === "") {
+        alert("Please login first!");
+        window.location.href = "ad_ad_login.html";
+    }
+});
+</script>
+<!-- ✅ END SESSION PROTECTION -->
+
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">
+        <img src="logo.png" width="100" height="90">
+    </a>
+    <ul class="nav justify-content-end">
+      <li class="nav-item"><a class="nav-link" href="ad_dashboard.html">Admin</a></li>
+
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Student</a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="addstudent.html">Add</a></li>
+          <li><a class="dropdown-item" href="update_student.html">Update</a></li>
+          <li><a class="dropdown-item" href="student_view.html">View</a></li>
+        </ul>
+      </li>
+
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Bus</a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="add_bus.html">Add</a></li>
+          <li><a class="dropdown-item" href="update_bus.html">Update</a></li>
+          <li><a class="dropdown-item" href="busview.html">View</a></li>
+        </ul>
+      </li>
+
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Notifications</a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="admin_notification.html">Notifications</a></li>
+          <li><a class="dropdown-item" href="ad_notification.html">Add Notifications</a></li>
+        </ul>
+      </li>
+
+      <li class="nav-item"><a class="nav-link" href="ad_message.html">Message</a></li>
+      <li class="nav-item"><a class="nav-link" href="ad_map.html">Location</a></li>
+      <li class="nav-item"><a class="nav-link" onclick="logout()">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+
+<br>
+
+<div class="table-responsive" id="msgContainer">
+    <div class="text-center">Loading messages...</div>
+</div>
+
+<script>
+window.addEventListener("load", () => { document.body.classList.add("loaded"); });
+
+const API_URL = "https://neeraj-backend-1-e2febqdsb5fwhvfg.canadacentral-01.azurewebsites.net/api/ad_message";
+
+async function loadMessages(){
+    let res = await fetch(API_URL, {
+        headers: {
+            "ad_session": localStorage.getItem("ad_session")  // ✅ Send session token
+        }
+    });
+
+    // If session expired
+    if(res.status === 401){
+        alert("Session expired. Please login again.");
+        localStorage.removeItem("ad_session");
+        return window.location.href = "ad_ad_login.html";
+    }
+
+    let data = await res.json();
+    let container = document.getElementById("msgContainer");
+
+    if(!Array.isArray(data) || data.length === 0){
+        container.innerHTML = `<div class="alert alert-warning">No messages found.</div>`;
+        return;
+    }
+
+    let html = `
+    <table class="table table-bordered table-striped">
+      <thead class="table-dark">
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Message</th>
+          <th>Date-Time</th>
+        </tr>
+      </thead>
+      <tbody>
+    `;
+
+    data.forEach(m => {
+        html += `
+            <tr>
+              <td>${m.name}</td>
+              <td>${m.email}</td>
+              <td>${m.message}</td>
+              <td>${m.date_time}</td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+loadMessages();
+</script>
+
+<script>
+function logout() {
+    localStorage.removeItem("ad_session");
+    window.location.href = "ad_login.html";
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

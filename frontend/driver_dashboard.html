@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Driver Dashboard</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: white;
+      opacity: 0;
+      transition: opacity 0.5s ease-in;
+    }
+    body.loaded {
+      opacity: 1;
+    }
+
+    .profile-card {
+      max-width: 600px;
+      margin: 60px auto;
+      padding: 30px;
+      background: white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 12px;
+    }
+
+    .profile-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 25px;
+      text-align: center;
+      color: #007bff;
+    }
+
+    .profile-item {
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .label {
+      font-weight: bold;
+      color: #555;
+    }
+
+    .value {
+      color: #333;
+    }
+
+    nav a {
+      margin-right: 15px;
+      text-decoration: none;
+      font-size: 17px;
+      color: #0066ff;
+    }
+  </style>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand">
+      <img src="logo.png" width="100" height="90">
+    </a>
+
+    <ul class="nav justify-content-end">
+      <li class="nav-item"><a class="nav-link" href="driver_dashboard.html">Profile</a></li>
+      <li class="nav-item"><a class="nav-link" href="driver_route.html">Route Info</a></li>
+      <li class="nav-item"><a class="nav-link" href="student_list.html">Student List</a></li>
+      <li class="nav-item"><a class="nav-link" href="driver_notifications.html">Notifications</a></li>
+      <li class="nav-item"><a class="nav-link" href="bus_map.html">Location</a></li>
+      <li class="nav-item"><a class="nav-link" href="contact_driver.html">Contact</a></li>
+      <li class="nav-item"><a class="nav-link" onclick="logout()">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="profile-card">
+  <div class="profile-title">Driver Profile</div>
+
+  <div class="profile-item"><span class="label">Driver ID:</span><span class="value" id="bus_id"></span></div>
+  <div class="profile-item"><span class="label">Name:</span><span class="value" id="name"></span></div>
+  <div class="profile-item"><span class="label">Phone:</span><span class="value" id="contact"></span></div>
+  <div class="profile-item"><span class="label">Assigned Bus:</span><span class="value" id="bus_no"></span></div>
+  <div class="profile-item"><span class="label">Address:</span><span class="value" id="address"></span></div>
+  <div class="profile-item"><span class="label">Email:</span><span class="value" id="email"></span></div>
+</div>
+
+<script>
+  window.addEventListener('load', () => document.body.classList.add('loaded'));
+
+  async function loadDriverProfile() {
+    const driverData = JSON.parse(localStorage.getItem("driver_data"));
+    
+    if (!driverData) {
+      alert("Session expired. Please login again.");
+      window.location.href = "driver_login.html";
+      return;
+    }
+
+    const username = driverData.username;
+
+    const response = await fetch("https://neeraj-backend-1-e2febqdsb5fwhvfg.canadacentral-01.azurewebsites.net/api/driver_dashboard", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ username })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      document.getElementById("bus_id").textContent = data.driver_profile.bus_id ?? "-";
+      document.getElementById("name").textContent = data.driver_profile.name ?? "-";
+      document.getElementById("contact").textContent = data.driver_profile.contact ?? "-";
+      document.getElementById("bus_no").textContent = data.driver_profile.bus_no ?? "-";
+      document.getElementById("address").textContent = data.driver_profile.address ?? "-";
+      document.getElementById("email").textContent = data.driver_profile.email ?? "-";
+    } else {
+      alert(data.error);
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem("driver_data");
+    window.location.href = "driver_login.html";
+  }
+
+  loadDriverProfile();
+</script>
+
+</body>
+</html>

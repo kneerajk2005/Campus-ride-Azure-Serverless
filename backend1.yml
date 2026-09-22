@@ -1,0 +1,92 @@
+# Python Function App to Linux on Azure
+# Build a Python function app and deploy it to Azure as a Linux function app.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/python
+
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - backend/*
+
+variables:
+  # Azure Resource Manager connection created during pipeline creation
+  azureSubscription: 'Azure subscription 1'
+
+  # Function app name
+  functionAppName: 'neeraj-backend-1'
+
+  # Working Directory
+  workingDirectory: '$(System.DefaultWorkingDirectory)/backend'
+
+pool:
+  name: 'pool1'
+
+stages:
+- stage: Build
+  displayName: Build stage
+
+  jobs:
+  - job: Build
+    displayName: Build
+
+    steps:
+    - bash: |
+        if [ -f extensions.csproj ]
+        then
+            dotnet build extensions.csproj --runtime ubuntu.22.04-x64 --output ./bin 
+        fi
+      workingDirectory: $(workingDirectory)
+      displayName: 'Build extensions'
+
+    - bash: |
+        python -m venv antenv
+        source antenv/bin/activate
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt --target="./.python_packages/lib/site-packages"
+      workingDirectory: $(workingDirectory)
+      displayName: 'Install application dependencies'
+    
+    - script: |
+        echo "Checking backend folder..."
+        ls -la $(System.DefaultWorkingDirectory)/backend
+
+      displayName: 'Verify backend folder'
+
+    - task: ArchiveFiles@2
+      displayName: 'Archive files'
+      inputs:
+        rootFolderOrFile: '$(workingDirectory)'
+        includeRootFolder: false
+        archiveType: zip
+        archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+        replaceExistingArchive: true
+
+    - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      artifact: drop
+
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+  condition: succeeded()
+
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy
+    environment: 'development'
+
+    strategy:
+      runOnce:
+        deploy:
+
+          steps:
+              
+          - task: AzureFunctionApp@2
+            inputs:
+              connectedServiceNameARM: 'Azure subscription 1'
+              appType: functionAppLinux
+              isFlexConsumption: true
+              appName: $(functionAppName)
+              package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'

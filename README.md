@@ -87,6 +87,7 @@ Prerequisites
 Clone the Repository
 
   git clone https://github.com/kneerajk2005/Campus-ride-Azure-Serverless.git
+  
   cd Campus-ride-Azure-Serverless
 
 Install Backend Dependencies

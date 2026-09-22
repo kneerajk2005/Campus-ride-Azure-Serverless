@@ -17,8 +17,7 @@ Features
 
 Tech Stack
 
- Category   Technologies                 
- ---------  ---------------------------- 
+ Category   Technologies                  
  Frontend  HTML, CSS, JavaScript        
  Backend   Python, Azure Functions      
  Database  Azure Cosmos DB              
@@ -33,14 +32,15 @@ Project Structure
 CampusRide-Azure-Serverless/
 
 ├── backend/
-│   ├── function_app.py
-│   ├── host.json
-│   ├── requirements.txt
-│   ├── .funcignore
-│   └── .gitignore
+│     function_app.py
+│     host.json
+│     requirements.txt
+│     .funcignore
+│     .gitignore
 │
 ├── frontend/
-│   ├── index.html
+│    index.html
+|
 ├── backend1.yml
 ├── frontend1.yml
 └── README.md

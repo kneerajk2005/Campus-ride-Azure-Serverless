@@ -117,6 +117,8 @@ Neeraj Kumar
  
 Sasidhar 
 
+Kushal Emuri
+
 Integrated M.Tech in Computer Science and Engineering
 
 Azure Cloud • Serverless • Backend Development
